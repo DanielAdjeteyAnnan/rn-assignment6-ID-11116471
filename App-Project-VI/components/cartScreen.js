@@ -196,6 +196,17 @@ const styles = StyleSheet.create({
     right: 20,
     top: 100,
   },
+  
+  diamond: {
+    width: 15,
+    height: 15,
+    backgroundColor: '#fff',
+    transform: [{ rotate: '45deg' }],
+    position: 'absolute',
+    bottom: -8,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0,0,0.1)',
+},
   footer: {
     position: 'absolute',
     bottom: 0, 
