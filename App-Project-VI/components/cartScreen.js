@@ -1,0 +1,134 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, Image, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CartScreen = () => {
+  const [cart, setCart] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchCart = async () => {
+      try {
+        let cart = await AsyncStorage.getItem('cart');
+        if (isMounted) {
+          setCart(cart ? JSON.parse(cart) : []);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchCart();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const removeFromCart = async (productId) => {
+    try {
+      let cart = await AsyncStorage.getItem('cart');
+      cart = cart ? JSON.parse(cart) : [];
+      cart = cart.filter((item) => item.id !== productId);
+      await AsyncStorage.setItem('cart', JSON.stringify(cart));
+      setCart(cart);
+      Alert.alert("Success", "Product removed from cart!");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={styles.productContainer} key={item.id}>
+      <Image source={item.image} style={styles.productImage} />
+      <View style={styles.productDetails}>
+        <Text style={styles.productName}>{item.name.toUpperCase()}</Text>
+        <Text style={styles.productDescription}>{item.description}</Text>
+        <Text style={styles.productPrice}>{item.price}</Text>
+      </View>
+      <TouchableOpacity onPress={() => removeFromCart(item.id)} style={styles.removeButton}>
+        <Text style={styles.removeButtonText}>X</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={cart}
+        keyExtractor={(item, index) => `${item.id}-${index}`}
+        renderItem={renderItem}
+        contentContainerStyle={styles.flatListContainer}
+        ListFooterComponent={() => (
+          <View style={styles.footer}>
+            <Text style={styles.totalCount}>Total Products: {cart.length}</Text>
+          </View>
+        )}
+      />
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+  flatListContainer: {
+    paddingBottom: 100,
+  },
+  productContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    paddingBottom: 16,
+  },
+  productImage: {
+    width: 100,
+    height: 150,
+  },
+  productDetails: {
+    flex: 1,
+    marginLeft: 16,
+  },
+  productName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  productDescription: {
+    fontSize: 14,
+    color: '#AFB0B6',
+  },
+  productPrice: {
+    fontSize: 20,
+    color: 'orange',
+  },
+  removeButton: {
+    backgroundColor: 'red',
+    borderRadius: 50,
+    padding: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  footer: {
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    alignItems: 'center',
+  },
+  totalCount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
+
+export default CartScreen;
