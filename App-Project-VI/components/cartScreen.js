@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, Image, Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, Image, Alert, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartScreen = () => {
   const [cart, setCart] = useState([]);
+  const [totalCost, setTotalCost] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -12,7 +13,9 @@ const CartScreen = () => {
       try {
         let cart = await AsyncStorage.getItem('cart');
         if (isMounted) {
-          setCart(cart ? JSON.parse(cart) : []);
+          cart = cart ? JSON.parse(cart) : [];
+          setCart(cart);
+          calculateTotalCost(cart);
         }
       } catch (error) {
         console.error(error);
@@ -26,6 +29,11 @@ const CartScreen = () => {
     };
   }, []);
 
+  const calculateTotalCost = (cart) => {
+    const total = cart.reduce((sum, item) => sum + parseFloat(item.price.slice(1)), 0);
+    setTotalCost(total);
+  };
+
   const removeFromCart = async (productId) => {
     try {
       let cart = await AsyncStorage.getItem('cart');
@@ -33,6 +41,7 @@ const CartScreen = () => {
       cart = cart.filter((item) => item.id !== productId);
       await AsyncStorage.setItem('cart', JSON.stringify(cart));
       setCart(cart);
+      calculateTotalCost(cart);
       Alert.alert("Success", "Product removed from cart!");
     } catch (error) {
       console.error(error);
@@ -48,25 +57,40 @@ const CartScreen = () => {
         <Text style={styles.productPrice}>{item.price}</Text>
       </View>
       <TouchableOpacity onPress={() => removeFromCart(item.id)} style={styles.removeButton}>
-        <Text style={styles.removeButtonText}>X</Text>
+        <Image source={require('../assets/images/remove.png')} style={styles.remove}/>
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={cart}
-        keyExtractor={(item, index) => `${item.id}-${index}`}
-        renderItem={renderItem}
-        contentContainerStyle={styles.flatListContainer}
-        ListFooterComponent={() => (
-          <View style={styles.footer}>
-            <Text style={styles.totalCount}>Total Products: {cart.length}</Text>
-          </View>
-        )}
-      />
-    </View>
+    <ScrollView contentContainerStyle={styles.scrollViewContent}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Image source={require('../assets/images/Logo.png')} style={styles.logo} />
+          <Image source={require('../assets/images/Search.png')} style={styles.search} />
+        </View>
+        <Text style={styles.headText}>CHECK OUT</Text>
+        <View style={styles.underline}></View>
+        <FlatList
+          data={cart}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderItem={renderItem}
+          contentContainerStyle={styles.flatListContainer}
+          ListFooterComponent={() => (
+            <View style={styles.cost}>
+              <View style={styles.totalCostContainer}>
+                <Text style={styles.totalCostLabel}>EST TOTAL</Text>
+                <Text style={styles.totalCostAmount}>${totalCost.toFixed(2)}</Text>
+              </View>
+            </View>
+          )}
+        />
+      </View>
+      <View style={styles.footer}>
+        <Image source={require('../assets/images/shoppingBag.png')} style={styles.shop} />
+        <Text style={styles.shopText}>CHECKOUT</Text>
+      </View>
+    </ScrollView>
   );
 };
 
@@ -74,6 +98,36 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  logo: {
+    width: 100,
+    height: 40,
+    left: 120,
+  },
+  search: {
+    width: 30,
+    height: 30,
+    left: 200,
+  },
+  headText: {
+    left: 100,
+    fontSize: 30,
+    fontWeight: 'bold',
+  },
+  underline: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#000',
+    marginBottom: 10,
+    width: '60%',
+    alignSelf: 'center',
   },
   flatListContainer: {
     paddingBottom: 100,
@@ -107,27 +161,59 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'orange',
   },
+  remove: {
+    width: 30,
+    height: 30,
+    top: 35,
+  },
   removeButton: {
-    backgroundColor: 'red',
     borderRadius: 50,
-    padding: 10,
+    padding: 35,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  removeButtonText: {
-    color: 'white',
+  cost: {
+    paddingVertical: 20,
+  },
+  totalCostContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  totalCostLabel: {
     fontSize: 18,
     fontWeight: 'bold',
+    right: 10,
+    top: 50,
+  },
+  totalCostAmount: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'orange',
+    right: 20,
+    top: 50,
   },
   footer: {
-    paddingVertical: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#ccc',
+    position: 'absolute',
+    bottom: 0, 
+    left: 0,
+    right: 0,
+    height: 60,
+    backgroundColor: 'black',
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  totalCount: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  shop: {
+    width: 30,
+    height: 30,
+    tintColor: '#fff',
+  },
+  shopText: {
+    fontSize: 24,
+    left: 10,
+    color: '#fff',
   },
 });
 
