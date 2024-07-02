@@ -70,7 +70,9 @@ const CartScreen = () => {
           <Image source={require('../assets/images/Search.png')} style={styles.search} />
         </View>
         <Text style={styles.headText}>CHECK OUT</Text>
-        <View style={styles.underline}></View>
+        <View style={styles.underline}>
+              <View style={styles.diamond} />
+              </View>
         <FlatList
           data={cart}
           keyExtractor={(item, index) => `${item.id}-${index}`}
