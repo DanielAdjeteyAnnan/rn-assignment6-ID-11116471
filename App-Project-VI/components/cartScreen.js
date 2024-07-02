@@ -185,14 +185,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     right: 10,
-    top: 50,
+    top: 100,
   },
   totalCostAmount: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'orange',
     right: 20,
-    top: 50,
+    top: 100,
   },
   footer: {
     position: 'absolute',
